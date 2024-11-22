@@ -31,7 +31,7 @@ export class AuthService {
    * @param signUpDto userName, userId, password
    * @returns 생성된 user의 id
    */
-  async signUp(signUpDto: SignUpDto): Promise<string> {
+  async signUp(signUpDto: SignUpDto): Promise<{ userId: string }> {
     const { userName, userId, password } = signUpDto;
 
     const hashedPassword = await this.hashPassword(password);
@@ -45,7 +45,7 @@ export class AuthService {
 
     try {
       await this.userRepository.save(user);
-      return user.id;
+      return { userId: user.id };
     } catch (error) {
       if (error.code === '23505') {
         throw new ConflictException('이미 존재하는 사용자입니다.');
