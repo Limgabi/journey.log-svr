@@ -1,8 +1,10 @@
+import { Journey } from 'src/journeys/journey.entity';
 import {
   BaseEntity,
   Column,
   CreateDateColumn,
   Entity,
+  OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
@@ -19,6 +21,9 @@ export class User extends BaseEntity {
 
   @Column()
   password: string;
+
+  @OneToMany(() => Journey, (journey) => journey.author, { eager: true }) // eager: true => user 정보 가져올 때 board 정보도 가져옴
+  journeys: Journey[];
 
   @CreateDateColumn()
   createAt: Date;
