@@ -41,7 +41,7 @@ export class Journey extends BaseEntity {
   status: 'PUBLIC' | 'PRIVATE';
 
   @ManyToOne(() => User, (user) => user.journeys, { eager: false })
-  author: User;
+  user: User;
 
   @CreateDateColumn()
   createdAt: Date;
