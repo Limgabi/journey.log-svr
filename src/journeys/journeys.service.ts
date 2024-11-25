@@ -16,17 +16,17 @@ export class JourneysService {
   /**
    * 여행 기록 작성
    * @param createJourneyDto coordinates, images, content, places, tags, status
-   * @param author 여행 기록 작성자
+   * @param user 여행 기록 작성자
    * @returns 작성된 journey id
    */
   async createJourney(
     createJourneyDto: CreateJourneyDto,
-    author: User,
+    user: User,
   ): Promise<{ id: string }> {
     const journey = this.journeyRepository.create({
       id: uuidv4(),
       ...createJourneyDto,
-      author,
+      user,
     });
 
     try {
@@ -35,5 +35,26 @@ export class JourneysService {
     } catch (error) {
       throw new InternalServerErrorException();
     }
+  }
+
+  /**
+   * 여행 기록 전체 조회
+   * @returns 여행 기록
+   */
+  async getAllJourneys(): Promise<Journey[]> {
+    return this.journeyRepository.find();
+  }
+
+  /**
+   * 특정 사용자가 작성한 여행 기록 조회
+   * @param user 사용자
+   * @returns 여행 기록
+   */
+  async getJourneys(userId: string): Promise<Journey[]> {
+    const query = this.journeyRepository.createQueryBuilder('journey');
+    query.where('journey.userId = :userId', { userId });
+
+    const journeys = await query.getMany();
+    return journeys;
   }
 }
