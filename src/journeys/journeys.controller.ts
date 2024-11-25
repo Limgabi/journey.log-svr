@@ -1,4 +1,4 @@
-import { Body, Controller, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query, UseGuards } from '@nestjs/common';
 import { JourneysService } from './journeys.service';
 import { AuthGuard } from '@nestjs/passport';
 import { CreateJourneyDto } from './dto/createJourney.dto';
@@ -16,5 +16,13 @@ export class JourneysController {
     @GetUser() user: User,
   ) {
     return this.journeyService.createJourney(createJourneyDto, user);
+  }
+
+  @Get()
+  getJourneys(@Query('userId') userId: string) {
+    if (userId) {
+      return this.journeyService.getJourneys(userId);
+    }
+    return this.journeyService.getAllJourneys();
   }
 }

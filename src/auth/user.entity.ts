@@ -22,7 +22,7 @@ export class User extends BaseEntity {
   @Column()
   password: string;
 
-  @OneToMany(() => Journey, (journey) => journey.author, { eager: true }) // eager: true => user 정보 가져올 때 board 정보도 가져옴
+  @OneToMany(() => Journey, (journey) => journey.user, { eager: true }) // eager: true => user 정보 가져올 때 board 정보도 가져옴
   journeys: Journey[];
 
   @CreateDateColumn()
