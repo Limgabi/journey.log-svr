@@ -6,11 +6,11 @@ import { GetUser } from 'src/auth/get-user-decorator';
 import { User } from 'src/auth/user.entity';
 
 @Controller('journeys')
+@UseGuards(AuthGuard())
 export class JourneysController {
   constructor(private journeyService: JourneysService) {}
 
   @Post()
-  @UseGuards(AuthGuard())
   createJourney(
     @Body() createJourneyDto: CreateJourneyDto,
     @GetUser() user: User,
@@ -19,10 +19,10 @@ export class JourneysController {
   }
 
   @Get()
-  getJourneys(@Query('userId') userId: string) {
+  getJourneys(@Query('userId') userId: string, @GetUser() user: User | null) {
     if (userId) {
-      return this.journeyService.getJourneys(userId);
+      return this.journeyService.getJourneys(userId, user || undefined);
     }
-    return this.journeyService.getAllJourneys();
+    return this.journeyService.getAllJourneys(user || undefined);
   }
 }
