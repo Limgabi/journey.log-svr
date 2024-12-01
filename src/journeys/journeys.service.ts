@@ -41,8 +41,34 @@ export class JourneysService {
    * 여행 기록 전체 조회
    * @returns 여행 기록
    */
-  async getAllJourneys(): Promise<Journey[]> {
-    return this.journeyRepository.find();
+  async getAllJourneys(user?: User): Promise<Journey[]> {
+    if (user) {
+      // PUBLIC 상태의 글 가져오기
+      const publicJourneys = this.journeyRepository.find({
+        where: { status: 'PUBLIC' },
+      });
+
+      // 로그인한 사용자의 모든 글 가져오기
+      const ownJourneys = this.getJourneys(user.id, user);
+
+      const [publicResults, ownResults] = await Promise.all([
+        publicJourneys,
+        ownJourneys,
+      ]);
+
+      const allJourneys = Array.from(
+        new Map(
+          publicResults.concat(ownResults).map((j) => [j.id, j]),
+        ).values(),
+      );
+
+      return allJourneys;
+    }
+
+    // 로그인하지 않은 경우 PUBLIC 상태의 글만 반환
+    return this.journeyRepository.find({
+      where: { status: 'PUBLIC' },
+    });
   }
 
   /**
@@ -50,11 +76,21 @@ export class JourneysService {
    * @param user 사용자
    * @returns 여행 기록
    */
-  async getJourneys(userId: string): Promise<Journey[]> {
+  async getJourneys(userId: string, user?: User): Promise<Journey[]> {
     const query = this.journeyRepository.createQueryBuilder('journey');
-    query.where('journey.userId = :userId', { userId });
+
+    // 로그인한 사용자와 조회 대상 사용자가 같은 경우
+    if (user && user.id === userId) {
+      query.where('journey.userId = :userId', { userId });
+    } else {
+      // 다른 사용자의 글은 PUBLIC 상태만 조회
+      query
+        .where('journey.userId = :userId', { userId })
+        .andWhere('journey.status = :status', { status: 'PUBLIC' });
+    }
 
     const journeys = await query.getMany();
+
     return journeys;
   }
 }
