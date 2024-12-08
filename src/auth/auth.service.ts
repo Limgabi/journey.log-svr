@@ -12,6 +12,7 @@ import * as bcrypt from 'bcrypt';
 import { v4 as uuidv4 } from 'uuid';
 import { SignInDto } from './dto/signIn.dto';
 import { JwtService } from '@nestjs/jwt';
+import { ErrorCode } from 'src/common/errorCode';
 
 @Injectable()
 export class AuthService {
@@ -64,14 +65,30 @@ export class AuthService {
     const { userId, password } = signInDto;
     const user = await this.userRepository.findOne({ where: { userId } });
 
-    if (user && (await bcrypt.compare(password, user.password))) {
-      // 로그인 성공 시 토큰 발급 (Secret + Payload)
-      const payload = { userId };
-      const accessToken = await this.jwtService.sign(payload);
-
-      return { accessToken };
-    } else {
-      throw new UnauthorizedException('로그인 실패');
+    // 존재하지 않는 유저 (id 없는 경우)
+    if (!user) {
+      throw new UnauthorizedException({
+        statusCode: 401,
+        errorCode: ErrorCode.USER_NOT_AUTHENTICATED,
+        message:
+          '입력한 사용자 정보와 일치하는 계정이 없습니다. 유효한 사용자 ID를 확인하세요.',
+      });
     }
+
+    // 비밀번호가 틀린 경우
+    if (!(await bcrypt.compare(password, user.password))) {
+      throw new UnauthorizedException({
+        statusCode: 401,
+        errorCode: ErrorCode.INVALID_PASSWORD,
+        message:
+          '입력한 비밀번호가 올바르지 않습니다. 비밀번호를 다시 확인해주세요.',
+      });
+    }
+
+    // 로그인 성공
+    const payload = { userId };
+    const accessToken = await this.jwtService.sign(payload);
+
+    return { accessToken };
   }
 }
