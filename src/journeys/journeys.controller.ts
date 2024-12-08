@@ -1,12 +1,12 @@
 import { Body, Controller, Get, Post, Query, UseGuards } from '@nestjs/common';
 import { JourneysService } from './journeys.service';
-import { AuthGuard } from '@nestjs/passport';
 import { CreateJourneyDto } from './dto/createJourney.dto';
 import { GetUser } from 'src/auth/get-user-decorator';
 import { User } from 'src/auth/user.entity';
+import { CustomAuthGuard } from 'src/auth/custom-auth-guard';
 
 @Controller('journeys')
-@UseGuards(AuthGuard())
+@UseGuards(CustomAuthGuard)
 export class JourneysController {
   constructor(private journeyService: JourneysService) {}
 
