@@ -25,4 +25,9 @@ export class JourneysController {
     }
     return this.journeyService.getAllJourneys(user || undefined);
   }
+
+  @Get('detail')
+  getJourneyDetail(@Query('id') id: string, @GetUser() user: User) {
+    return this.journeyService.getJourneyDetail(id, user);
+  }
 }
