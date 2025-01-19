@@ -1,4 +1,10 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { isOwner, isPublic } from './utils/journey.utils';
+import {
+  ForbiddenException,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Journey } from './journey.entity';
 import { Repository } from 'typeorm';
@@ -92,5 +98,30 @@ export class JourneysService {
     const journeys = await query.getMany();
 
     return journeys;
+  }
+
+  /**
+   * 여행 기록 상세 조회
+   * @param id 여행 기록 id
+   * @param user 요청 사용자 정보
+   * @returns 여행 기록
+   */
+  async getJourneyDetail(id: string, user: User): Promise<Journey> {
+    // ID로 여행 기록 조회
+    const journey = await this.journeyRepository.findOne({
+      where: { id },
+      relations: ['user'],
+    });
+
+    if (!journey) {
+      throw new NotFoundException('존재하지 않는 여행 기록 id 입니다.');
+    }
+
+    // 권한 확인
+    if (isOwner(journey, user) || isPublic(journey)) {
+      return journey;
+    }
+
+    throw new ForbiddenException('여행 기록 조회 권한이 없습니다.');
   }
 }
