@@ -32,7 +32,7 @@ export class JourneysService {
     const journey = this.journeyRepository.create({
       id: uuidv4(),
       ...createJourneyDto,
-      user,
+      userId: user.id,
     });
 
     try {
@@ -83,21 +83,15 @@ export class JourneysService {
    * @returns 여행 기록
    */
   async getJourneys(userId: string, user?: User): Promise<Journey[]> {
-    const query = this.journeyRepository.createQueryBuilder('journey');
-
     // 로그인한 사용자와 조회 대상 사용자가 같은 경우
     if (user && user.id === userId) {
-      query.where('journey.userId = :userId', { userId });
+      return this.journeyRepository.find({ where: { userId } });
     } else {
       // 다른 사용자의 글은 PUBLIC 상태만 조회
-      query
-        .where('journey.userId = :userId', { userId })
-        .andWhere('journey.status = :status', { status: 'PUBLIC' });
+      return this.journeyRepository.find({
+        where: { userId, status: 'PUBLIC' },
+      });
     }
-
-    const journeys = await query.getMany();
-
-    return journeys;
   }
 
   /**
@@ -107,21 +101,21 @@ export class JourneysService {
    * @returns 여행 기록
    */
   async getJourneyDetail(id: string, user: User): Promise<Journey> {
-    // ID로 여행 기록 조회
+    // id로 여행 기록 조회
     const journey = await this.journeyRepository.findOne({
       where: { id },
-      relations: ['user'],
     });
 
     if (!journey) {
       throw new NotFoundException('존재하지 않는 여행 기록 id 입니다.');
     }
 
-    // 권한 확인
-    if (isOwner(journey, user) || isPublic(journey)) {
-      return journey;
+    //권한 확인
+    const isAuthorized = isOwner(journey, user) || isPublic(journey);
+    if (!isAuthorized) {
+      throw new ForbiddenException('여행 기록 조회 권한이 없습니다.');
     }
 
-    throw new ForbiddenException('여행 기록 조회 권한이 없습니다.');
+    return journey;
   }
 }

@@ -4,6 +4,7 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
@@ -40,7 +41,11 @@ export class Journey extends BaseEntity {
   })
   status: 'PUBLIC' | 'PRIVATE';
 
-  @ManyToOne(() => User, (user) => user.journeys, { eager: false })
+  @Column({ nullable: false })
+  userId: string;
+
+  @ManyToOne(() => User, (user) => user.id, { eager: false })
+  @JoinColumn({ name: 'userId' }) // userId 컬럼과 User 관계 연결
   user: User;
 
   @CreateDateColumn()
