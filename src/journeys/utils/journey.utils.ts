@@ -17,7 +17,7 @@ const isPublic = (journey: Journey): boolean => {
  * @returns 작성자 여부
  */
 const isOwner = (journey: Journey, user: User): boolean => {
-  return journey.user.id === user.id;
+  return journey.userId === user.id;
 };
 
 export { isPublic, isOwner };
